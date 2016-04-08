@@ -8,6 +8,8 @@ import threading
 from thriftpy.protocol import TBinaryProtocolFactory
 from thriftpy.transport import (
     TBufferedTransportFactory,
+    TBufferedTransport,
+    TMemoryBuffer,
     TTransportException
 )
 
@@ -32,6 +34,61 @@ class TServer(object):
 
     def close(self):
         pass
+
+
+class THTTPServer(TServer):
+
+    def __init__(self, processor, itrans_factory=None,
+                 iprot_factory=None, oprot_factory=None,
+                 catch_all=False):
+        self.processor = processor
+
+        self.itrans_factory = itrans_factory or TBufferedTransportFactory()
+        self.iprot_factory = iprot_factory or TBinaryProtocolFactory()
+        self.oprot_factory = oprot_factory or self.iprot_factory
+        self.catch_all = catch_all
+
+    def wsgi(self, environ, start_response):
+        # TODO: use Content-Length to decide buffer size
+        # TODO: only accepts POST request.
+        # TODO: verify content-type before further handling.
+        if environ.get('REQUEST_METHOD', 'HEAD').upper() != 'POST':
+            status = '405 Method not allowed'
+            headers = [('Content-Type', 'text/html; charset=UTF-8')]
+            start_response(status, headers)
+            error = (
+                "<h1>Error</h1>"
+                "<p>Thrift HTTP API only accepts POST</p>"
+            )
+            return [error]
+        if environ.get('CONTENT_LENGTH'):
+            try:
+                buf_size = int(environ['CONTENT_LENGTH'])
+            except (TypeError, ValueError):
+                buf_size = 4096
+        else:
+            buf_size = 4096
+
+        trans = environ['wsgi.input']
+        itrans = TBufferedTransport(trans, buf_size)
+
+        otrans = TMemoryBuffer()
+        iproto = self.iprot_factory.get_protocol(itrans)
+        oproto = self.oprot_factory.get_protocol(otrans)
+        try:
+            self.processor.process(iproto, oproto)
+            headers = [("content-type", "application/x-thrift")]
+            status = '200 OK'
+            start_response(status, headers)
+        except (KeyboardInterrupt, SystemExit, MemoryError):
+            raise
+        except:
+            if not self.catch_all:
+                raise
+            headers = [('Content-Type', 'text/html; charset=UTF-8')]
+            status = '500 Internal server error'
+            start_response(status, headers)
+        return [otrans.getvalue()]
 
 
 class TSimpleServer(TServer):

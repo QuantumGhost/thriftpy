@@ -22,12 +22,21 @@ tornado_requires = [
     "toro==0.6"
 ]
 
+gevent_requires = [
+    'gevent>=1.0'
+]
+
+http_requires = [
+    'urllib3>=1.15'
+]
+
 dev_requires = [
     "cython>=0.23",
     "flake8>=2.5",
     "pytest>=2.8",
     "sphinx-rtd-theme>=0.1.9",
     "sphinx>=1.3",
+    'webtest>=2.0.20'
 ] + tornado_requires
 
 
@@ -81,7 +90,8 @@ setup(name="thriftpy",
       tests_require=tornado_requires,
       extras_require={
           "dev": dev_requires,
-          "tornado": tornado_requires
+          "tornado": tornado_requires,
+          "gevent": gevent_requires
       },
       cmdclass=cmdclass,
       ext_modules=ext_modules,

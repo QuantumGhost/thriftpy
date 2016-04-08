@@ -4,6 +4,7 @@ from __future__ import absolute_import
 
 import contextlib
 import warnings
+import sys
 
 from thriftpy.protocol import TBinaryProtocolFactory
 from thriftpy.server import TThreadedServer
@@ -48,6 +49,26 @@ def make_server(service, handler,
                              iprot_factory=proto_factory,
                              itrans_factory=trans_factory)
     return server
+
+
+def make_http_server(service, handler,
+                     host="localhost", port=9090,
+                     proto_factory=TBinaryProtocolFactory(),
+                     trans_factory=TBufferedTransportFactory()):
+    processor = TProcessor(service, handler)
+
+
+def make_wsgi_app(processor,
+                  proto_factory=TBinaryProtocolFactory(),
+                  trans_factory=TBufferedTransportFactory(),
+                  debug=False, catch_all=True):
+    pass
+
+
+def make_http_client(processor,
+                     proto_factory=TBinaryProtocolFactory(),
+                     trans_factory=TBufferedTransportFactory()):
+    pass
 
 
 @contextlib.contextmanager
