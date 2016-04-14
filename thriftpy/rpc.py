@@ -51,26 +51,6 @@ def make_server(service, handler,
     return server
 
 
-def make_http_server(service, handler,
-                     host="localhost", port=9090,
-                     proto_factory=TBinaryProtocolFactory(),
-                     trans_factory=TBufferedTransportFactory()):
-    processor = TProcessor(service, handler)
-
-
-def make_wsgi_app(processor,
-                  proto_factory=TBinaryProtocolFactory(),
-                  trans_factory=TBufferedTransportFactory(),
-                  debug=False, catch_all=True):
-    pass
-
-
-def make_http_client(processor,
-                     proto_factory=TBinaryProtocolFactory(),
-                     trans_factory=TBufferedTransportFactory()):
-    pass
-
-
 @contextlib.contextmanager
 def client_context(service, host="localhost", port=9090, unix_socket=None,
                    proto_factory=TBinaryProtocolFactory(),
